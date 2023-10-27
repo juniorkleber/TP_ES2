@@ -106,7 +106,7 @@ def validate_user():
         def list_products():
             # Limpa os dados existentes na TreeView
             for i in treeview.get_children():
-                treeview.deleteProductTreeview(i)
+                treeview.delete(i)
 
             # Executa uma consulta SQL para seleciwindowonar todos os produtos
             cursor.execute("SELECT * FROM Produtos")
@@ -318,9 +318,9 @@ def validate_user():
         treeview = ttk.Treeview(main_window, style="mystyle.Treeview", column=("ID", "Nome", "Descricao", "Preco"), show="headings", height=20)
 
         treeview.heading("ID", text="ID")
-        treeview.heading("Nome", text="Nome do Produto")
-        treeview.heading("Descricao", text="Descrição do Produto")
-        treeview.heading("Preco", text="Preço do Produto")
+        treeview.heading("Nome", text="Product Name")
+        treeview.heading("Descricao", text="Product Description")
+        treeview.heading("Preco", text="Product Price")
 
         # (#0) = primeira coluna
         # (stretch=NO) = coluna nao estica para preencher espaço disponivel
