@@ -73,6 +73,8 @@ def register_new_user():
     register_user_window.grid_columnconfigure(0, weight=1)
     register_user_window.grid_columnconfigure(1, weight=1)
 
+
+
 # Função para verificar as credenciais do usuário
 def validate_user():
     # Realiza a conexão com o banco de dados usando pyodbc
