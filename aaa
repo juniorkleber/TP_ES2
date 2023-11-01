@@ -1,0 +1,65 @@
+def open_main_interface():
+    # Cria uma nova janela para a tela principal
+    main_window = Tk()
+    main_window.title("SysControl")
+    main_window.configure(bg="#eeeeee")
+    main_window.attributes("-fullscreen", True)
+
+    # Configura Janela de atalhos
+    menu_bar = Menu(main_window)
+    main_window.configure(menu=menu_bar)
+
+    menu_arquivo = Menu(menu_bar, tearoff=0)
+    menu_bar.add_cascade(label="Menu", menu=menu_arquivo)
+
+    # Cria opção menu Cadastrar
+    menu_arquivo.add_command(label="Cadastrar")
+
+    # Cria opção menu Sair
+    menu_arquivo.add_command(label="Sair", command=main_window.destroy)
+
+    # Cria rótulos e campos de entrada para nome e descrição do produto
+    Label(main_window, text="Search by", font="Arial 14", bg="#eeeeee").grid(row=0, column=1, padx=10, pady=10)
+
+    Label(main_window, text="Product Name: ", font="Arial 14", bg="#eeeeee").grid(row=0, column=2, padx=10, pady=10)
+    product_name = Entry(main_window, font="Arial 14")
+    product_name.grid(row=0, column=3, padx=10, pady=10)
+
+    Label(main_window, text="Product Description: ", font="Arial 14", bg="#eeeeee").grid(row=0, column=5, padx=10, pady=10)
+    product_description = Entry(main_window, font="Arial 14")
+    product_description.grid(row=0, column=6, padx=10, pady=10)
+
+    Label(main_window, text="All Products", font="Arial 18 bold", fg="black", bg="#eeeeee").grid(row=2, column=0, columnspan=10, padx=10, pady=10)
+
+    btn_save = Button(main_window, text="New Product", font="Arial 26")
+    btn_save.grid(row=4, column=0, columnspan=4, sticky="NSEW", padx=20, pady=5)
+
+    # Cria um botão "Deletar" na janela que chama a função delete() quando clicado
+    btn_delete = Button(main_window, text="Delete", font="Arial 26")
+    btn_delete.grid(row=4, column=4, columnspan=4, sticky="NSEW", padx=20, pady=5)
+
+    # Cria a conexão com o banco de dados
+    connection = pyodbc.connect("Driver={SQLite3 ODBC Driver};Server=localhost;Database=Projeto.db")
+
+    # Cria uma instância da classe ProductInterface
+    product_interface = ProductInterface(main_window, connection)
+
+    # Defina funções de ação para botões, como o botão de pesquisa
+    def search_action():
+        product_interface.search_product(product_name.get(), product_description.get())
+
+    # Defina uma função de ação para o botão "New Product"
+    def new_product_action():
+        product_interface.register_new_product()
+
+    # Chame a função list_products na inicialização para preencher a TreeView
+    product_interface.list_products()
+
+    # Mantém a janela principal aberta
+    main_window.mainloop()
+
+    # Feche a conexão com o banco de dados após fechar a janela principal
+    connection.close()
+
+# Execução da aplicação
+show_login_window()
