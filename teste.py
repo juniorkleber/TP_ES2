@@ -1,4 +1,4 @@
-from tkinter import Tk, Button, Entry, Label, ttk, Toplevel, Menu, messagebox
+from tkinter import Tk, Button, Entry, Label, ttk, Toplevel, Menu, messagebox, StringVar
 import pyodbc
 
 class ProductInterface:
@@ -117,11 +117,11 @@ class ProductInterface:
 
             self.list_products()  # Chama a função list_products da classe ProductInterface
 
-        btn_save_cadastro = Button(register_product_window, text="Save", font=("Arial", 12), command=saveData)
-        btn_save_cadastro.grid(row=3, column=1, columnspan=1, pady=10)
+        btn_save_product = Button(register_product_window, text="Save", font=("Arial", 14), bg="#008000", fg="#ffffff", command=saveData)
+        btn_save_product.grid(row=3,column=0, columnspan=2,padx=10,pady=10, sticky="NSEW")
 
-        btn_cancel_cadastro = Button(register_product_window, text="Cancel", font=("Arial", 12), command=register_product_window.destroy)
-        btn_cancel_cadastro.grid(row=3, column=0, columnspan=1, pady=10)
+        btn_cancel_product = Button(register_product_window, text="Cancel", font=("Arial", 14), bg="#FF0000", fg="#ffffff", command=register_product_window.destroy)
+        btn_cancel_product.grid(row=4,column=0, columnspan=2,padx=10,pady=10, sticky="NSEW")
 
     def edit_product(self, event):
         # Obtém o item selecionado na TreeView.
@@ -171,6 +171,11 @@ class ProductInterface:
         for i in range(2):
             edit_product_window.grid_columnconfigure(i, weight=1)
 
+        btn_save_edit = Button(edit_product_window, text="Confirm", font=("Arial", 14), bg="#008000", fg="#ffffff")
+        btn_save_edit.grid(row=4,column=1, padx=20,pady=20)
+        btn_cancel_edit = Button(edit_product_window, text="Cancel", font=("Arial", 14), bg="#FF0000", fg="#ffffff", command=edit_product_window.destroy)
+        btn_cancel_edit.grid(row=4,column=0, padx=20,pady=20)
+        
         # Esta função é chamada quando o usuário clica no botão "Confirm" para salvar as edições feitas em um produto.
         def saveEdit():
             # Obtém os novos valores inseridos nos campos de edição.
@@ -195,8 +200,7 @@ class ProductInterface:
             # Atualiza a lista de dados na interface.
             self.list_products()
 
-        btn_save_edit = Button(edit_product_window, text="Confirm", font=("Arial", 14), bg="#008000", fg="#ffffff", command=saveEdit)
-        btn_save_edit.grid(row=4, column=1, padx=20, pady=20)
+        
 
     def delete_product_treeview(self):
         # Obtém o item selecionado na TreeView
@@ -334,6 +338,24 @@ def register_new_user(login_window):
 
 
 def open_main_interface():
+    # Defina uma função de ação para o botão "New Product"
+    def new_product_action():
+        product_interface.register_new_product()
+
+    # Defina funções de ação para botões, como o botão de pesquisa
+    def search_action():
+        product_interface.search_product(product_name.get(), product_description.get())
+
+    
+    def delete_product_action():
+        # Verifique se um item está selecionado na TreeView
+        selected_item = product_interface.treeview.selection()
+        if selected_item:
+            # Chame a função para excluir o produto
+            product_interface.delete_product_treeview()
+        else:
+            messagebox.showinfo("Delete Product", "Please select a product to delete.")
+
     # Cria uma nova janela para a tela principal
     main_window = Tk()
     main_window.title("SysControl")
@@ -347,11 +369,12 @@ def open_main_interface():
     menu_arquivo = Menu(menu_bar, tearoff=0)
     menu_bar.add_cascade(label="Menu", menu=menu_arquivo)
 
+    
     #Cria opção menu Cadastrar
-    menu_arquivo.add_command(label="Cadastrar")
+    menu_arquivo.add_command(label="Register",command=new_product_action)
 
     #Cria opção menu Sair
-    menu_arquivo.add_command(label="Sair", command=main_window.destroy)
+    menu_arquivo.add_command(label="Exit", command=main_window.destroy)
 
     # Cria rótulos e campos de entrada para nome e descrição do produto
     Label(main_window, text="Search by", font="Arial 14", bg="#eeeeee").grid(row=0,column=1, padx=10, pady=10)
@@ -366,7 +389,10 @@ def open_main_interface():
 
     Label(main_window, text="All Products", font="Arial 18 bold", fg="black" , bg="#eeeeee").grid(row=2,column=0, columnspan=10, padx=10, pady=10)
 
-    btn_save = Button(main_window, text="New Product", font="Arial 26")
+    
+
+
+    btn_save = Button(main_window, text="New Product", font="Arial 26", command=new_product_action)
     btn_save.grid(row=4,column=0, columnspan=4, sticky="NSEW", padx=20, pady=5)
 
     # Cria um botão "Deletar" na janela que chama a função delete() quando clicado
@@ -383,22 +409,7 @@ def open_main_interface():
     # Chame o método para criar a TreeView
     product_interface.create_treeview()
 
-    # Defina funções de ação para botões, como o botão de pesquisa
-    def search_action():
-        product_interface.search_product(product_name.get(), product_description.get())
-
-    # Defina uma função de ação para o botão "New Product"
-    def new_product_action():
-        product_interface.register_new_product()
-
-    def delete_product_action():
-        # Verifique se um item está selecionado na TreeView
-        selected_item = product_interface.treeview.selection()
-        if selected_item:
-            # Chame a função para excluir o produto
-            product_interface.delete_product_treeview()
-        else:
-            messagebox.showinfo("Delete Product", "Please select a product to delete.")
+    
 
     # Chame a função list_products na inicialização para preencher a TreeView
     product_interface.list_products()
@@ -479,14 +490,14 @@ def show_login_window():
     password_entry = Entry(login_window, show="*",font="Arial 14")
     password_entry.grid(row=2,column=1, pady=10)
 
-    entrar_btn = Button(login_window, text="Create an account", font="Arial 12", bg="#eeeeee", command=show_register_window)
-    entrar_btn.grid(row=4, column=0,columnspan=1, padx=20, pady=10, sticky="NSEW")
+    login_btn = Button(login_window, text="Create an account", font="Arial 12", bg="#eeeeee", command=show_register_window)
+    login_btn.grid(row=4, column=0,columnspan=1, padx=20, pady=10, sticky="NSEW")
 
-    entrar_btn = Button(login_window, text="Login", font="Arial 12", bg="#eeeeee", command=verify_login)
-    entrar_btn.grid(row=4, column=1,columnspan=2, padx=20, pady=10, sticky="NSEW")
+    login_btn = Button(login_window, text="Login", font="Arial 12", bg="#eeeeee", command=verify_login)
+    login_btn.grid(row=4, column=1,columnspan=2, padx=20, pady=10, sticky="NSEW")
 
-    sair_btn = Button(login_window, text="Exit", font="Arial 12", bg="#eeeeee", command=login_window.destroy)
-    sair_btn.grid(row=5, column=0,columnspan=2, padx=20, pady=10, sticky="NSEW")
+    exit_btn = Button(login_window, text="Exit", font="Arial 12", bg="#eeeeee", command=login_window.destroy)
+    exit_btn.grid(row=5, column=0,columnspan=2, padx=20, pady=10, sticky="NSEW")
 
     # Define a configuração de peso para as linhas e colunas da grade da tela de login
     for i in range(5):
