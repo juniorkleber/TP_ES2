@@ -38,6 +38,11 @@ class ProductInterface:
         # Permite edição de dados com duplo clique
         self.treeview.bind("<Double-1>", self.edit_product)
 
+    #limpo dados da treeview
+    def clear_treeview(self):
+        for i in self.treeview.get_children():
+            # Remove linha por linha
+            self.delete_product_treeview()
 
     def list_products(self):
         # Limpa os dados existentes na TreeView
@@ -171,8 +176,6 @@ class ProductInterface:
 
         for i in range(2):
             edit_product_window.grid_columnconfigure(i, weight=1)
-
-        
         
         # Esta função é chamada quando o usuário clica no botão "Confirm" para salvar as edições feitas em um produto.
         def saveEdit():
@@ -222,7 +225,6 @@ class ProductInterface:
             # Se nenhum item estiver selecionado, exiba uma mensagem de erro
             messagebox.showerror("Erro", "Selecione um produto para deletar.")
 
-
     def search_product(self, product_name, product_description):
         # Verifica se ambos os campos estão vazios
         if not product_name and not product_description:
@@ -267,7 +269,6 @@ class ProductInterface:
         # Preenche a TreeView com os dados filtrados
         for product in products:
             self.treeview.insert('', 'end', values=(product[0], product[1], product[2], product[3]))
-
 
 def register_new_user(login_window):
     # Cria uma nova janela superior (Toplevel) para o cadastro.
@@ -337,7 +338,6 @@ def register_new_user(login_window):
     register_user_window.grid_columnconfigure(0, weight=1)
     register_user_window.grid_columnconfigure(1, weight=1)
 
-
 def open_main_interface():
     # Defina uma função de ação para o botão "New Product"
     def new_product_action():
@@ -347,7 +347,6 @@ def open_main_interface():
     def search_action():
         product_interface.search_product(product_name.get(), product_description.get())
 
-    
     def delete_product_action():
         # Verifique se um item está selecionado na TreeView
         selected_item = product_interface.treeview.selection()
@@ -356,6 +355,7 @@ def open_main_interface():
             product_interface.delete_product_treeview()
         else:
             messagebox.showinfo("Delete Product", "Please select a product to delete.")
+
 
     # Cria uma nova janela para a tela principal
     main_window = Tk()
@@ -370,7 +370,6 @@ def open_main_interface():
     menu_arquivo = Menu(menu_bar, tearoff=0)
     menu_bar.add_cascade(label="Menu", menu=menu_arquivo)
 
-    
     #Cria opção menu Cadastrar
     menu_arquivo.add_command(label="Register",command=new_product_action)
 
@@ -390,8 +389,6 @@ def open_main_interface():
 
     Label(main_window, text="All Products", font="Arial 18 bold", fg="black" , bg="#eeeeee").grid(row=2,column=0, columnspan=10, padx=10, pady=10)
 
-    
-
 
     btn_save = Button(main_window, text="New Product", font="Arial 26", command=new_product_action)
     btn_save.grid(row=4,column=0, columnspan=4, sticky="NSEW", padx=20, pady=5)
@@ -409,7 +406,6 @@ def open_main_interface():
     
     # Chame o método para criar a TreeView
     product_interface.create_treeview()
-
     
     # Chame a função list_products na inicialização para preencher a TreeView
     product_interface.list_products()
@@ -506,12 +502,8 @@ def show_login_window():
 
     for i in range(2):
         login_window.grid_columnconfigure(i, weight=1)
-
-
     
     login_window.mainloop()
-
-    
 
 # Execução da aplicação
 show_login_window()
