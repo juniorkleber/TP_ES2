@@ -5,6 +5,7 @@ class ProductInterface:
     def __init__(self, main_window,connection):
         self.main_window = main_window
         self.connection = connection
+        self.cursor = connection.cursor()
         self.setup_ui()
 
     def setup_ui(self):
@@ -101,7 +102,7 @@ class ProductInterface:
             register_product_window.grid_columnconfigure(i, weight=1)
 
         # Esta função é chamada quando o botão "Salvar" na janela de cadastro é clicado.
-        def saveData(self):
+        def saveData():
             # Coleta os valores inseridos nos campos de entrada.
             register_new_product_ = (product_name_register.get(), product_description_register.get(), product_price_register.get())
 
@@ -171,10 +172,7 @@ class ProductInterface:
         for i in range(2):
             edit_product_window.grid_columnconfigure(i, weight=1)
 
-        btn_save_edit = Button(edit_product_window, text="Confirm", font=("Arial", 14), bg="#008000", fg="#ffffff")
-        btn_save_edit.grid(row=4,column=1, padx=20,pady=20)
-        btn_cancel_edit = Button(edit_product_window, text="Cancel", font=("Arial", 14), bg="#FF0000", fg="#ffffff", command=edit_product_window.destroy)
-        btn_cancel_edit.grid(row=4,column=0, padx=20,pady=20)
+        
         
         # Esta função é chamada quando o usuário clica no botão "Confirm" para salvar as edições feitas em um produto.
         def saveEdit():
@@ -200,7 +198,10 @@ class ProductInterface:
             # Atualiza a lista de dados na interface.
             self.list_products()
 
-        
+        btn_save_edit = Button(edit_product_window, text="Confirm", font=("Arial", 14), bg="#008000", fg="#ffffff", command=saveEdit)
+        btn_save_edit.grid(row=4,column=1, padx=20,pady=20)
+        btn_cancel_edit = Button(edit_product_window, text="Cancel", font=("Arial", 14), bg="#FF0000", fg="#ffffff", command=edit_product_window.destroy)
+        btn_cancel_edit.grid(row=4,column=0, padx=20,pady=20)
 
     def delete_product_treeview(self):
         # Obtém o item selecionado na TreeView
@@ -396,7 +397,7 @@ def open_main_interface():
     btn_save.grid(row=4,column=0, columnspan=4, sticky="NSEW", padx=20, pady=5)
 
     # Cria um botão "Deletar" na janela que chama a função delete() quando clicado
-    btn_delete = Button(main_window, text="Delete", font="Arial 26")
+    btn_delete = Button(main_window, text="Delete", font="Arial 26", command=delete_product_action)
     btn_delete.grid(row=4,column=4, columnspan=4, sticky="NSEW", padx=20, pady=5)
     
 
@@ -410,7 +411,6 @@ def open_main_interface():
     product_interface.create_treeview()
 
     
-
     # Chame a função list_products na inicialização para preencher a TreeView
     product_interface.list_products()
 
