@@ -2,19 +2,20 @@ from tkinter import Tk, Button, Entry, Label, ttk, Toplevel, Menu, messagebox, S
 import pyodbc
 
 class ProductInterface:
-     # Inicializa a interface do produto com a janela principal e a conexão ao banco de dados
     def __init__(self, main_window,connection):
         self.main_window = main_window
         self.connection = connection
-        self.cursor = connection.cursor()
         self.setup_ui()
 
-    # Configura a interface do usuário
     def setup_ui(self):
-        self.create_treeview()  # Cria a visualização em árvore para exibir os produtos
+        self.create_product_widgets()
+        self.create_treeview()
+        # Outros componentes da interface podem ser configurados aqui
 
-    # Cria a TreeView para exibir os produtos e configura as colunas
-    # A TreeView exibe os dados dos produtos e permite a edição deles
+    def create_product_widgets(self):
+        # Configuração de widgets para adicionar, editar e excluir produtos
+        pass
+
     def create_treeview(self):
         self.treeview = ttk.Treeview(self.main_window, columns=("ID", "Nome", "Descricao", "Preco"), show="headings")
         
@@ -36,14 +37,9 @@ class ProductInterface:
         # Permite edição de dados com duplo clique
         self.treeview.bind("<Double-1>", self.edit_product)
 
-    #limpo dados da treeview
-    def clear_treeview(self):
-        for i in self.treeview.get_children():
-            # Remove linha por linha
-            self.delete_product_treeview()
 
-    # Exibe todos os produtos existentes no banco de dados na TreeView
     def list_products(self):
+        # Limpa os dados existentes na TreeView
         for item in self.treeview.get_children():
             self.treeview.delete(item)
 
@@ -61,8 +57,9 @@ class ProductInterface:
         # Fecha o cursor
         cursor.close()
 
-    # Cria uma nova janela para inserir os dados de um novo produto
+
     def register_new_product(self):
+        # Cria uma nova janela superior (Toplevel) para o cadastro.
         register_product_window = Toplevel(self.main_window)
         register_product_window.title("Register New Product")
         register_product_window.configure(bg="#eeeeee")
@@ -104,7 +101,7 @@ class ProductInterface:
             register_product_window.grid_columnconfigure(i, weight=1)
 
         # Esta função é chamada quando o botão "Salvar" na janela de cadastro é clicado.
-        def saveData():
+        def saveData(self):
             # Coleta os valores inseridos nos campos de entrada.
             register_new_product_ = (product_name_register.get(), product_description_register.get(), product_price_register.get())
 
@@ -120,14 +117,12 @@ class ProductInterface:
 
             self.list_products()  # Chama a função list_products da classe ProductInterface
 
-        #Botes para salvar ou cancelar a requisão de registro de algum item
         btn_save_product = Button(register_product_window, text="Save", font=("Arial", 14), bg="#008000", fg="#ffffff", command=saveData)
         btn_save_product.grid(row=3,column=0, columnspan=2,padx=10,pady=10, sticky="NSEW")
 
         btn_cancel_product = Button(register_product_window, text="Cancel", font=("Arial", 14), bg="#FF0000", fg="#ffffff", command=register_product_window.destroy)
         btn_cancel_product.grid(row=4,column=0, columnspan=2,padx=10,pady=10, sticky="NSEW")
 
-    # Permite editar os detalhes de um produto selecionado na TreeView
     def edit_product(self, event):
         # Obtém o item selecionado na TreeView.
         selected_item = self.treeview.selection()[0]
@@ -175,6 +170,11 @@ class ProductInterface:
 
         for i in range(2):
             edit_product_window.grid_columnconfigure(i, weight=1)
+
+        btn_save_edit = Button(edit_product_window, text="Confirm", font=("Arial", 14), bg="#008000", fg="#ffffff")
+        btn_save_edit.grid(row=4,column=1, padx=20,pady=20)
+        btn_cancel_edit = Button(edit_product_window, text="Cancel", font=("Arial", 14), bg="#FF0000", fg="#ffffff", command=edit_product_window.destroy)
+        btn_cancel_edit.grid(row=4,column=0, padx=20,pady=20)
         
         # Esta função é chamada quando o usuário clica no botão "Confirm" para salvar as edições feitas em um produto.
         def saveEdit():
@@ -200,13 +200,8 @@ class ProductInterface:
             # Atualiza a lista de dados na interface.
             self.list_products()
 
-        #Botoes para salvar ou cancelar a requisão de registro de algum item
-        btn_save_edit = Button(edit_product_window, text="Confirm", font=("Arial", 14), bg="#008000", fg="#ffffff", command=saveEdit)
-        btn_save_edit.grid(row=4,column=1, padx=20,pady=20)
-        btn_cancel_edit = Button(edit_product_window, text="Cancel", font=("Arial", 14), bg="#FF0000", fg="#ffffff", command=edit_product_window.destroy)
-        btn_cancel_edit.grid(row=4,column=0, padx=20,pady=20)
+        
 
-    # Remove o produto selecionado na TreeView e na base de dados
     def delete_product_treeview(self):
         # Obtém o item selecionado na TreeView
         selected_item = self.treeview.selection()
@@ -222,43 +217,56 @@ class ProductInterface:
             cursor = self.connection.cursor()
             cursor.execute("DELETE FROM Produtos WHERE ID = ?", (product_id,))
             self.connection.commit()
-
         else:
             # Se nenhum item estiver selecionado, exiba uma mensagem de erro
-            messagebox.showerror("Error", "Select a product to delete.")
+            messagebox.showerror("Erro", "Selecione um produto para deletar.")
 
-    # Filtra os produtos exibidos na TreeView com base no nome e descrição fornecidos
-    # Se os campos estiverem vazios, exibe todos os produtos
-    def filter_data(self, product_name, product_description):
-        if not product_name.get() and not product_description.get():
+
+    def search_product(self, product_name, product_description):
+        # Verifica se ambos os campos estão vazios
+        if not product_name and not product_description:
+            # Chama a função list_products() se ambos os campos estiverem vazios
             self.list_products()
             return
         
-        sql = "SELECT * FROM Produtos"
-        params = []
-        if product_name.get():
-            sql += " WHERE Nome LIKE ?"
-            params.append('%' + product_name.get() + '%') 
-        
-        if product_description.get():
-            if product_name.get():
-                sql += " AND "
-            else:
-                sql += " WHERE"
-            sql += " Descricao LIKE ?"
-            params.append('%' + product_description.get() + '%')
+        # Construção da consulta SQL básica
+        sql = "SELECT * FROM Produtos WHERE"
 
-        self.cursor.execute(sql, tuple(params))
-        product = self.cursor.fetchall()
-        
-        #limpo dados da treeview
-        for i in self.treeview.get_children():
-            #deleto linha por linha
-            self.treeview.delete(i)
+        # Lista para armazenar parâmetros da consulta
+        params = []
+
+        # Verifica se o campo de nome do produto não está vazio
+        # Adiciona uma cláusula WHERE para filtrar com base no nome
+        # Adiciona o nome do produto com '%' para corresponder a qualquer parte do nome
+        if product_name:
+            sql += " Nome LIKE ?"
+            params.append('%' + product_name + '%') 
             
-        #preenche preview com dados filtrados   
-        for data in product:
-            self.treeview.insert('', 'end', values=(data[0], data[1],data[2],data[3]))
+        # Verifica se o campo de descrição do produto não está vazio
+        # Se um filtro de nome já foi adicionado, adicione um operador lógico "AND"
+        # Se não houver filtro de nome, adicione uma cláusula WHERE
+        # Adiciona uma cláusula para filtrar com base na descrição
+        # Adiciona a descrição do produto com '%' para corresponder a qualquer parte da descrição
+        if product_description:
+            if product_name:
+                sql += " AND "
+            sql += " Descricao LIKE ?"
+            params.append('%' + product_description + '%')
+
+        # Executa a consulta SQL com os parâmetros
+        cursor = self.connection.cursor()
+        cursor.execute(sql, params)
+        
+        # Obtém os resultados da consulta
+        products = cursor.fetchall()
+
+        # Limpa os dados da TreeView
+        self.clear_treeview()
+
+        # Preenche a TreeView com os dados filtrados
+        for product in products:
+            self.treeview.insert('', 'end', values=(product[0], product[1], product[2], product[3]))
+
 
 def register_new_user(login_window):
     # Cria uma nova janela superior (Toplevel) para o cadastro.
@@ -318,7 +326,6 @@ def register_new_user(login_window):
         # Feche a janela de cadastro após a conclusão
         register_user_window.destroy()
 
-    #Botoes da tela de registro de novo usuario
     btn_save_cadastro = Button(register_user_window, text="Confirm", font=("Arial", 12), command=save_user)
     btn_save_cadastro.grid(row=3, column=1, columnspan=1, pady=10)
 
@@ -328,6 +335,90 @@ def register_new_user(login_window):
     # Define as colunas 0 e 1 para ocupar todo o espaço disponível
     register_user_window.grid_columnconfigure(0, weight=1)
     register_user_window.grid_columnconfigure(1, weight=1)
+
+
+def open_main_interface():
+    # Defina uma função de ação para o botão "New Product"
+    def new_product_action():
+        product_interface.register_new_product()
+
+    # Defina funções de ação para botões, como o botão de pesquisa
+    def search_action():
+        product_interface.search_product(product_name.get(), product_description.get())
+
+    
+    def delete_product_action():
+        # Verifique se um item está selecionado na TreeView
+        selected_item = product_interface.treeview.selection()
+        if selected_item:
+            # Chame a função para excluir o produto
+            product_interface.delete_product_treeview()
+        else:
+            messagebox.showinfo("Delete Product", "Please select a product to delete.")
+
+    # Cria uma nova janela para a tela principal
+    main_window = Tk()
+    main_window.title("SysControl")
+    main_window.configure(bg="#eeeeee")
+    main_window.attributes("-fullscreen", True)
+
+    #Configura Janela de atalhos
+    menu_bar = Menu(main_window)
+    main_window.configure(menu=menu_bar)
+
+    menu_arquivo = Menu(menu_bar, tearoff=0)
+    menu_bar.add_cascade(label="Menu", menu=menu_arquivo)
+
+    
+    #Cria opção menu Cadastrar
+    menu_arquivo.add_command(label="Register",command=new_product_action)
+
+    #Cria opção menu Sair
+    menu_arquivo.add_command(label="Exit", command=main_window.destroy)
+
+    # Cria rótulos e campos de entrada para nome e descrição do produto
+    Label(main_window, text="Search by", font="Arial 14", bg="#eeeeee").grid(row=0,column=1, padx=10, pady=10)
+
+    Label(main_window, text="Product Name: ", font="Arial 14", bg="#eeeeee").grid(row=0,column=2, padx=10, pady=10)
+    product_name = Entry(main_window, font="Arial 14")
+    product_name.grid(row=0,column=3, padx=10, pady=10)
+
+    Label(main_window, text="Product Description: ", font="Arial 14", bg="#eeeeee").grid(row=0,column=5, padx=10, pady=10)
+    product_description = Entry(main_window, font="Arial 14")
+    product_description.grid(row=0,column=6, padx=10, pady=10)
+
+    Label(main_window, text="All Products", font="Arial 18 bold", fg="black" , bg="#eeeeee").grid(row=2,column=0, columnspan=10, padx=10, pady=10)
+
+    
+
+
+    btn_save = Button(main_window, text="New Product", font="Arial 26", command=new_product_action)
+    btn_save.grid(row=4,column=0, columnspan=4, sticky="NSEW", padx=20, pady=5)
+
+    # Cria um botão "Deletar" na janela que chama a função delete() quando clicado
+    btn_delete = Button(main_window, text="Delete", font="Arial 26")
+    btn_delete.grid(row=4,column=4, columnspan=4, sticky="NSEW", padx=20, pady=5)
+    
+
+    # Cria a conexão com o banco de dados
+    connection = pyodbc.connect("Driver={SQLite3 ODBC Driver};Server=localhost;Database=Projeto.db")
+
+    # Cria uma instância da classe ProductInterface
+    product_interface = ProductInterface(main_window, connection)
+    
+    # Chame o método para criar a TreeView
+    product_interface.create_treeview()
+
+    
+
+    # Chame a função list_products na inicialização para preencher a TreeView
+    product_interface.list_products()
+
+    # Mantém a janela principal aberta
+    main_window.mainloop()
+
+    # Feche a conexão com o banco de dados após fechar a janela principal
+    connection.close()
 
 def validate_user(username, password):
     # Sua lógica para validar o usuário aqui
@@ -364,6 +455,7 @@ def show_login_window():
             # Cria um rótulo de aviso com texto "Nome de Usuário ou Senha incorretos" em vermelho
             msg_lbl = Label(login_window, text="Incorrect username or password.", fg="red")
             msg_lbl.grid(row=3,column=0,columnspan=2)
+
 
     # Configura janela principal
     login_window.configure(bg="#00008B")
@@ -414,82 +506,12 @@ def show_login_window():
 
     for i in range(2):
         login_window.grid_columnconfigure(i, weight=1)
+
+
     
     login_window.mainloop()
 
-#Funçao que é responsavel pela abertura e gerencia da tela principal do programa
-def open_main_interface():
-    # Defina uma função de ação para o botão "New Product"
-    def new_product_action():
-        product_interface.register_new_product()
-
-    # Defina funções de ação para botões, como o botão de pesquisa
-    def search_action():
-        product_interface.search_product(product_name.get(), product_description.get())
-
-    def delete_product_action():
-        product_interface.delete_product_treeview()
-
-    # Cria uma nova janela para a tela principal
-    main_window = Tk()
-    main_window.title("SysControl")
-    main_window.configure(bg="#eeeeee")
-    main_window.attributes("-fullscreen", True)
-
-    #Configura Janela de atalhos
-    menu_bar = Menu(main_window)
-    main_window.configure(menu=menu_bar)
-
-    menu_arquivo = Menu(menu_bar, tearoff=0)
-    menu_bar.add_cascade(label="Menu", menu=menu_arquivo)
-
-    #Cria opção menu Cadastrar
-    menu_arquivo.add_command(label="Register",command=new_product_action)
-
-    #Cria opção menu Sair
-    menu_arquivo.add_command(label="Exit", command=main_window.destroy)
-
-    # Cria rótulos e campos de entrada para nome e descrição do produto
-    Label(main_window, text="Search by", font="Arial 14", bg="#eeeeee").grid(row=0,column=1, padx=10, pady=10)
-
-    Label(main_window, text="Product Name: ", font="Arial 14", bg="#eeeeee").grid(row=0,column=2, padx=10, pady=10)
-    product_name = Entry(main_window, font="Arial 14")
-    product_name.grid(row=0,column=3, padx=10, pady=10)
-
-    Label(main_window, text="Product Description: ", font="Arial 14", bg="#eeeeee").grid(row=0,column=5, padx=10, pady=10)
-    product_description = Entry(main_window, font="Arial 14")
-    product_description.grid(row=0,column=6, padx=10, pady=10)
-
-    Label(main_window, text="All Products", font="Arial 18 bold", fg="black" , bg="#eeeeee").grid(row=2,column=0, columnspan=10, padx=10, pady=10)
-
-    btn_save = Button(main_window, text="New Product", font="Arial 26", command=new_product_action)
-    btn_save.grid(row=4,column=0, columnspan=4, sticky="NSEW", padx=20, pady=5)
-
-    # Cria um botão "Deletar" na janela que chama a função delete() quando clicado
-    btn_delete = Button(main_window, text="Delete", font="Arial 26", command=delete_product_action)
-    btn_delete.grid(row=4,column=4, columnspan=4, sticky="NSEW", padx=20, pady=5)
-
-    # Cria a conexão com o banco de dados
-    connection = pyodbc.connect("Driver={SQLite3 ODBC Driver};Server=localhost;Database=Projeto.db")
-
-    # Cria uma instância da classe ProductInterface
-    product_interface = ProductInterface(main_window, connection)
     
-    # Chame o método para criar a TreeView
-    product_interface.create_treeview()
-    
-    # Chame a função list_products na inicialização para preencher a TreeView
-    product_interface.list_products()
-
-    #Abre a instancia da função da barra de pesquisa
-    product_name.bind('<KeyRelease>', lambda e: product_interface.filter_data(product_name, product_description))
-    product_description.bind('<KeyRelease>', lambda e: product_interface.filter_data(product_name, product_description))
-
-    # Mantém a janela principal aberta
-    main_window.mainloop()
-
-    # Feche a conexão com o banco de dados após fechar a janela principal
-    connection.close()
 
 # Execução da aplicação
 show_login_window()
