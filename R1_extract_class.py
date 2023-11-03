@@ -3,10 +3,8 @@ import pyodbc
 
 class product:
      # Inicializa a interface do produto com a janela principal e a conexão ao banco de dados
-    def __init__(self, main_window,connection):
+    def __init__(self, main_window):
         self.main_window = main_window
-        self.connection = connection
-        self.cursor = connection.cursor()
         self.setup_ui()
 
     # Configura a interface do usuário
@@ -42,8 +40,17 @@ class product:
         for item in self.treeview.get_children():
             self.treeview.delete(item)
 
+        # Configuração da conexão com o banco de dados
+        dadosConexao = ("Driver={SQLite3 ODBC Driver};Server=localhost;Database=Projeto.db")
+
+        # Cria uma nova conexão com o banco de dados
+        connection = pyodbc.connect(dadosConexao)
+
+        # Cria um novo cursor para executar SQL na nova conexão
+        cursor = connection.cursor()
+
         # Realiza uma consulta SQL para selecionar todos os produtos
-        cursor = self.connection.cursor()
+        cursor = connection.cursor()
         cursor.execute("SELECT * FROM Produtos")
 
         # Obtém os resultados da consulta
@@ -106,10 +113,19 @@ class product:
             # Coleta os valores inseridos nos campos de entrada.
             register_new_product_ = (name.get(), description.get(), price.get())
 
+            # Configuração da conexão com o banco de dados
+            dadosConexao = ("Driver={SQLite3 ODBC Driver};Server=localhost;Database=Projeto.db")
+
+            # Cria uma nova conexão com o banco de dados
+            connection = pyodbc.connect(dadosConexao)
+
+            # Cria um novo cursor para executar SQL na nova conexão
+            cursor = connection.cursor()
+            
             # Executa uma operação SQL para inserir os dados no banco de dados.
-            self.cursor.execute("INSERT INTO Produtos (Nome, Descricao, Preco) Values (?,?,?)", register_new_product_)
+            cursor.execute("INSERT INTO Produtos (Nome, Descricao, Preco) Values (?,?,?)", register_new_product_)
             # Grava as alterações no banco de dados.
-            self.connection.commit()
+            connection.commit()
 
             print("Product registered successfully!")
 
@@ -190,12 +206,21 @@ class product:
             # Atualiza os valores do item na TreeView com os novos valores.
             self.treeview.item(selected_item, values=(select_values[0], product, new_description, new_price))
 
+            # Configuração da conexão com o banco de dados
+            dadosConexao = ("Driver={SQLite3 ODBC Driver};Server=localhost;Database=Projeto.db")
+
+            # Cria uma nova conexão com o banco de dados
+            connection = pyodbc.connect(dadosConexao)
+
+            # Cria um novo cursor para executar SQL na nova conexão
+            cursor = connection.cursor()
+
             # Executa uma operação SQL para atualizar o produto no banco de dados.
-            self.cursor.execute("UPDATE Produtos SET Nome = ?, Descricao = ?, Preco = ? WHERE ID = ?", 
+            cursor.execute("UPDATE Produtos SET Nome = ?, Descricao = ?, Preco = ? WHERE ID = ?", 
                                 (product, new_description, new_price, select_values[0]))
 
             # Grava as alterações no banco de dados.
-            self.connection.commit()
+            connection.commit()
 
             print("Data Registered Successfully!")
 
@@ -224,10 +249,19 @@ class product:
             # Remove o item da TreeView
             self.treeview.delete(selected_item)
             
+            # Configuração da conexão com o banco de dados
+            dadosConexao = ("Driver={SQLite3 ODBC Driver};Server=localhost;Database=Projeto.db")
+
+            # Cria uma nova conexão com o banco de dados
+            connection = pyodbc.connect(dadosConexao)
+
+            # Cria um novo cursor para executar SQL na nova conexão
+            cursor = connection.cursor()
+
             # Remove o produto do banco de dados
-            cursor = self.connection.cursor()
+            
             cursor.execute("DELETE FROM Produtos WHERE ID = ?", (product_id,))
-            self.connection.commit()
+            connection.commit()
 
         else:
             # Se nenhum item estiver selecionado, exiba uma mensagem de erro
@@ -236,6 +270,16 @@ class product:
     # Filtra os produtos exibidos na TreeView com base no nome e descrição fornecidos
     # Se os campos estiverem vazios, exibe todos os produtos
     def filter(self, x, y):
+
+        # Configuração da conexão com o banco de dados
+        dadosConexao = ("Driver={SQLite3 ODBC Driver};Server=localhost;Database=Projeto.db")
+
+        # Cria uma nova conexão com o banco de dados
+        connection = pyodbc.connect(dadosConexao)
+
+        # Cria um novo cursor para executar SQL na nova conexão
+        cursor = connection.cursor()
+
         if not x.get() and not y.get():
             self.list()
             return
@@ -254,8 +298,8 @@ class product:
             sql += " Descricao LIKE ?"
             params.append('%' + y.get() + '%')
 
-        self.cursor.execute(sql, tuple(params))
-        product = self.cursor.fetchall()
+        cursor.execute(sql, tuple(params))
+        product = cursor.fetchall()
         
         #limpo dados da treeview
         for i in self.treeview.get_children():
@@ -425,6 +469,15 @@ def show_login_window():
 
 #Funçao que é responsavel pela abertura e gerencia da tela principal do programa
 def open_main_interface():
+    # Configuração da conexão com o banco de dados
+    dadosConexao = ("Driver={SQLite3 ODBC Driver};Server=localhost;Database=Projeto.db")
+
+    # Cria uma nova conexão com o banco de dados
+    connection = pyodbc.connect(dadosConexao)
+
+    # Cria um novo cursor para executar SQL na nova conexão
+    cursor = connection.cursor()
+
     # Defina uma função de ação para o botão "New Product"
     def action1():
         interface.register_p()
@@ -478,11 +531,9 @@ def open_main_interface():
     btn_delete = Button(main_window, text="Delete", font="Arial 26", command=action3)
     btn_delete.grid(row=4,column=4, columnspan=4, sticky="NSEW", padx=20, pady=5)
 
-    # Cria a conexão com o banco de dados
-    connection = pyodbc.connect("Driver={SQLite3 ODBC Driver};Server=localhost;Database=Projeto.db")
 
     # Cria uma instância da classe ProductInterface
-    interface = product(main_window, connection)
+    interface = product(main_window)
     
     # Chame o método para criar a TreeView
     interface.create()
